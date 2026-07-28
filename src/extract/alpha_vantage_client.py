@@ -4,10 +4,13 @@ import os
 import requests
 import logging
 from src.extract.exceptions import RateLimitError, InvalidSymbolError, TransientAPIError
+from src.utils.retry import retry
 
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://www.alphavantage.co/query"
+
+@retry(exceptions=(TransientAPIError, RateLimitError), max_attempts=3, base_delay=1.0)
 
 
 def fetch_daily_time_series(symbol: str) -> dict:
@@ -37,8 +40,8 @@ def fetch_daily_time_series(symbol: str) -> dict:
     try:
         response = requests.get(BASE_URL, params=params, timeout=10)
     except requests.exceptions.RequestException as e:
-        logger.warning(f"Network error for symbol={symbol}: {e}")
-        raise TransientAPIError(f"Network failure calling Alpha Vantage: {e}") from e
+        logger.warning(f"Network error for symbol={symbol}: {type(e).__name__}")
+        raise TransientAPIError(f"Network failure calling Alpha Vantage for {symbol}") from e
         pass
 
     if response.status_code != 200:
