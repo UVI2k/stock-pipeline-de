@@ -51,3 +51,4 @@ for symbol in SYMBOLS:
         op_kwargs={"symbol": symbol},
         dag=dag,
     )
+    
